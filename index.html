@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Petal — Feminine Self Care System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --pink:#F6B9C7; --pink-dark:#E88CA3; --pink-deep:#D46A85;
+    --lavender:#C9B7E4; --lavender-dark:#A98FD1;
+    --peach:#F5C6A0; --peach-dark:#EDA76E;
+    --sage:#A9C7A3; --sage-dark:#7FA878;
+    --cream:#EFE3D6; --cream-dark:#DCC8AE;
+    --accent:var(--pink); --accent-dark:var(--pink-dark); --accent-deep:var(--pink-deep);
+    --bg:#FFF9F6; --panel:#FFFFFF; --ink:#3B2A33; --ink-soft:#7A6670; --line:#F1E3E4;
+    --radius:20px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Quicksand',sans-serif;background:var(--bg);color:var(--ink);}
+  h1,h2,h3,.display{font-family:'Fraunces',serif;}
+  ::selection{background:var(--accent);color:#fff;}
+
+  /* ---------- Onboarding ---------- */
+  #onboard{position:fixed;inset:0;background:linear-gradient(160deg,#FFF3F6,#FBEFE2);z-index:999;
+    display:flex;align-items:center;justify-content:center;padding:20px;}
+  .ob-card{background:var(--panel);border-radius:28px;max-width:460px;width:100%;padding:36px 30px;
+    box-shadow:0 20px 60px rgba(214,120,140,.18);text-align:center;}
+  .ob-flower{font-size:40px;margin-bottom:6px;}
+  .ob-card h1{font-size:26px;margin:6px 0 4px;color:var(--accent-deep);}
+  .ob-card p.sub{color:var(--ink-soft);margin:0 0 22px;font-size:14.5px;}
+  .ob-step{display:none;}
+  .ob-step.active{display:block;animation:fadein .35s ease;}
+  @keyframes fadein{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+  .ob-input{width:100%;padding:13px 16px;border-radius:14px;border:1.5px solid var(--line);
+    font-family:'Quicksand';font-size:15px;margin-bottom:14px;outline:none;background:#FFFCFB;}
+  .ob-input:focus{border-color:var(--accent);}
+  .chip-grid{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:16px;}
+  .chip{padding:10px 16px;border-radius:999px;border:1.5px solid var(--line);background:#FFFCFB;
+    font-family:'Quicksand';font-size:13.5px;cursor:pointer;color:var(--ink);transition:.15s;}
+  .chip.tone{width:38px;height:38px;padding:0;border-radius:50%;border:2px solid var(--line);}
+  .chip:hover{border-color:var(--accent-dark);}
+  .chip.selected{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600;}
+  .chip.tone.selected{border-color:var(--accent-deep);box-shadow:0 0 0 3px rgba(232,140,163,.25);}
+  .ob-btn{width:100%;padding:14px;border:none;border-radius:14px;background:var(--accent-deep);
+    color:#fff;font-family:'Quicksand';font-weight:700;font-size:15px;cursor:pointer;margin-top:6px;}
+  .ob-btn:hover{background:var(--pink-deep);}
+  .ob-btn.ghost{background:transparent;color:var(--ink-soft);font-weight:500;margin-top:8px;}
+  .ob-dots{display:flex;gap:6px;justify-content:center;margin-top:20px;}
+  .ob-dots span{width:6px;height:6px;border-radius:50%;background:var(--line);}
+  .ob-dots span.on{background:var(--accent-deep);}
+
+  /* ---------- App shell ---------- */
+  #app{display:none;min-height:100vh;}
+  #app.show{display:flex;}
+  .sidebar{width:250px;background:linear-gradient(180deg,#FFF0F4,#FDF6EF);border-right:1px solid var(--line);
+    padding:22px 14px;position:sticky;top:0;height:100vh;overflow-y:auto;flex-shrink:0;}
+  .brand{display:flex;align-items:center;gap:10px;padding:6px 10px 20px;}
+  .brand .mark{width:34px;height:34px;border-radius:50%;background:var(--accent);display:flex;align-items:center;
+    justify-content:center;font-size:17px;box-shadow:0 4px 10px rgba(232,140,163,.4);}
+  .brand b{font-family:'Fraunces';font-size:19px;color:var(--accent-deep);}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:14px;cursor:pointer;
+    font-size:14px;color:var(--ink);margin-bottom:2px;transition:.15s;}
+  .nav-item .ic{font-size:16px;width:20px;text-align:center;}
+  .nav-item:hover{background:#FFFFFF;}
+  .nav-item.active{background:var(--panel);color:var(--accent-deep);font-weight:700;
+    box-shadow:0 3px 10px rgba(214,120,140,.12);}
+  .theme-row{display:flex;gap:8px;padding:16px 10px 4px;flex-wrap:wrap;}
+  .theme-dot{width:22px;height:22px;border-radius:50%;cursor:pointer;border:2px solid transparent;}
+  .theme-dot.active{border-color:var(--ink);}
+
+  .main{flex:1;padding:28px 30px 60px;max-width:920px;}
+  .topbar{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px;flex-wrap:wrap;gap:10px;}
+  .topbar h1{font-size:26px;margin:0;color:var(--accent-deep);}
+  .topbar p{margin:4px 0 0;color:var(--ink-soft);font-size:14px;}
+  .menu-toggle{display:none;background:var(--panel);border:1px solid var(--line);border-radius:12px;
+    padding:8px 12px;cursor:pointer;font-size:18px;}
+
+  .card{background:var(--panel);border-radius:var(--radius);padding:22px;margin-bottom:18px;
+    box-shadow:0 6px 24px rgba(150,100,110,.06);border:1px solid var(--line);}
+  .card h3{margin:0 0 12px;font-size:16.5px;color:var(--ink);display:flex;align-items:center;gap:8px;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  @media(max-width:700px){.grid2{grid-template-columns:1fr;}}
+
+  .check-row{display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px dashed var(--line);
+    font-size:14.5px;}
+  .check-row:last-child{border-bottom:none;}
+  .check-row input{width:18px;height:18px;accent-color:var(--accent-deep);}
+  .check-row.done label{color:var(--ink-soft);text-decoration:line-through;}
+
+  .btn{border:none;border-radius:12px;padding:10px 16px;font-family:'Quicksand';font-weight:700;
+    font-size:13.5px;cursor:pointer;background:var(--accent-deep);color:#fff;}
+  .btn:hover{opacity:.9;}
+  .btn.soft{background:var(--cream);color:var(--ink);}
+  .btn.small{padding:7px 12px;font-size:12.5px;}
+  .row-input{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
+  .row-input input,.row-input select{flex:1;min-width:110px;padding:10px 12px;border-radius:10px;
+    border:1.5px solid var(--line);font-family:'Quicksand';font-size:13.5px;background:#FFFCFB;}
+
+  .pill{display:inline-block;padding:4px 11px;border-radius:999px;background:var(--cream);font-size:11.5px;
+    color:var(--ink-soft);margin-right:6px;margin-bottom:6px;}
+
+  .stat-row{display:flex;gap:14px;flex-wrap:wrap;}
+  .stat{flex:1;min-width:120px;background:linear-gradient(150deg,#FFF3F6,#FFFCFB);border-radius:16px;
+    padding:16px;text-align:center;border:1px solid var(--line);}
+  .stat .num{font-family:'Fraunces';font-size:26px;color:var(--accent-deep);}
+  .stat .lab{font-size:12px;color:var(--ink-soft);}
+
+  .petal-ring{width:120px;height:120px;margin:0 auto 10px;position:relative;}
+  .list-item{display:flex;justify-content:space-between;align-items:center;padding:9px 4px;
+    border-bottom:1px dashed var(--line);font-size:14px;}
+  .list-item:last-child{border-bottom:none;}
+  .list-item .x{cursor:pointer;color:var(--ink-soft);font-size:15px;}
+  textarea{width:100%;border-radius:12px;border:1.5px solid var(--line);padding:12px;font-family:'Quicksand';
+    font-size:14px;min-height:80px;resize:vertical;background:#FFFCFB;}
+  .affirm-box{background:linear-gradient(150deg,var(--accent),var(--accent-dark));color:#fff;border-radius:20px;
+    padding:30px 22px;text-align:center;font-family:'Fraunces';font-size:19px;line-height:1.4;}
+  .tag-section{margin-bottom:16px;}
+  .tag-section h4{font-size:13.5px;color:var(--accent-deep);margin:0 0 8px;text-transform:uppercase;
+    letter-spacing:.04em;}
+  details{margin-bottom:8px;border:1px solid var(--line);border-radius:12px;padding:10px 14px;background:#FFFCFB;}
+  summary{cursor:pointer;font-weight:600;font-size:14px;}
+  details p{font-size:13.5px;color:var(--ink-soft);margin:8px 0 2px;line-height:1.55;}
+  .footer-note{text-align:center;color:var(--ink-soft);font-size:11.5px;padding:26px 0 10px;}
+  .section{display:none;}
+  .section.active{display:block;animation:fadein .3s ease;}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:10px;}
+  .cal-day{aspect-ratio:1;border-radius:10px;background:var(--cream);display:flex;align-items:center;
+    justify-content:center;font-size:12px;color:var(--ink-soft);cursor:pointer;}
+  .cal-day.logged{background:var(--accent);color:#fff;font-weight:700;}
+  .cal-day.today{border:2px solid var(--accent-deep);}
+  @media(max-width:820px){
+    .sidebar{position:fixed;left:-260px;z-index:100;transition:.25s;box-shadow:0 0 30px rgba(0,0,0,.15);}
+    .sidebar.open{left:0;}
+    .menu-toggle{display:block;}
+    .main{padding:20px 16px 60px;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ================= ONBOARDING ================= -->
+<div id="onboard">
+  <div class="ob-card">
+    <div id="ob-step-1" class="ob-step active">
+      <div class="ob-flower">🌸</div>
+      <h1>Hi, I'm Petal</h1>
+      <p class="sub">Your feminine self care space. Soft on the outside, works hard on the inside. Let's set you up, it only takes a minute.</p>
+      <input class="ob-input" id="ob-name" placeholder="What should I call you?">
+      <button class="ob-btn" onclick="obNext(2)">Continue</button>
+    </div>
+
+    <div id="ob-step-2" class="ob-step">
+      <div class="ob-flower">🎨</div>
+      <h1>Your skin tone</h1>
+      <p class="sub">This helps me personalize sun care and skin tips for you.</p>
+      <div class="chip-grid" id="tone-picker">
+        <div class="chip tone" style="background:#FFE0BD" data-v="fair" onclick="pick('tone',this)"></div>
+        <div class="chip tone" style="background:#F1C27D" data-v="light" onclick="pick('tone',this)"></div>
+        <div class="chip tone" style="background:#E0AC69" data-v="medium" onclick="pick('tone',this)"></div>
+        <div class="chip tone" style="background:#C68642" data-v="tan" onclick="pick('tone',this)"></div>
+        <div class="chip tone" style="background:#8D5524" data-v="deep" onclick="pick('tone',this)"></div>
+        <div class="chip tone" style="background:#5C3317" data-v="rich" onclick="pick('tone',this)"></div>
+      </div>
+      <button class="ob-btn" onclick="obNext(3)">Continue</button>
+      <button class="ob-btn ghost" onclick="obNext(3)">Skip</button>
+    </div>
+
+    <div id="ob-step-3" class="ob-step">
+      <div class="ob-flower">💧</div>
+      <h1>Your skin type</h1>
+      <div class="chip-grid" id="skintype-picker">
+        <div class="chip" data-v="dry" onclick="pick('skintype',this)">Dry</div>
+        <div class="chip" data-v="oily" onclick="pick('skintype',this)">Oily</div>
+        <div class="chip" data-v="combo" onclick="pick('skintype',this)">Combination</div>
+        <div class="chip" data-v="sensitive" onclick="pick('skintype',this)">Sensitive</div>
+        <div class="chip" data-v="normal" onclick="pick('skintype',this)">Normal</div>
+      </div>
+      <button class="ob-btn" onclick="obNext(4)">Continue</button>
+    </div>
+
+    <div id="ob-step-4" class="ob-step">
+      <div class="ob-flower">🌀</div>
+      <h1>Your hair texture</h1>
+      <p class="sub">So your wash schedule actually fits your curl pattern.</p>
+      <div class="chip-grid" id="hair-picker">
+        <div class="chip" data-v="straight" onclick="pick('hair',this)">Straight (1)</div>
+        <div class="chip" data-v="wavy" onclick="pick('hair',this)">Wavy (2)</div>
+        <div class="chip" data-v="curly" onclick="pick('hair',this)">Curly (3)</div>
+        <div class="chip" data-v="coily" onclick="pick('hair',this)">Coily (4)</div>
+      </div>
+      <button class="ob-btn" onclick="finishOnboard()">Take me in 🌸</button>
+    </div>
+
+    <div class="ob-dots">
+      <span id="dot1" class="on"></span><span id="dot2"></span><span id="dot3"></span><span id="dot4"></span>
+    </div>
+  </div>
+</div>
+
+<!-- ================= APP ================= -->
+<div id="app">
+  <div class="sidebar" id="sidebar">
+    <div class="brand"><div class="mark">🌸</div><b>Petal</b></div>
+    <div class="nav-item active" data-s="dashboard" onclick="go('dashboard')"><span class="ic">🏠</span>Dashboard</div>
+    <div class="nav-item" data-s="hygiene" onclick="go('hygiene')"><span class="ic">🧴</span>Hygiene Hub</div>
+    <div class="nav-item" data-s="cycle" onclick="go('cycle')"><span class="ic">🌙</span>Cycle Care</div>
+    <div class="nav-item" data-s="skin" onclick="go('skin')"><span class="ic">✨</span>Skincare Studio</div>
+    <div class="nav-item" data-s="hair" onclick="go('hair')"><span class="ic">🌀</span>Hair Care</div>
+    <div class="nav-item" data-s="body" onclick="go('body')"><span class="ic">🛁</span>Body Care</div>
+    <div class="nav-item" data-s="wellness" onclick="go('wellness')"><span class="ic">💧</span>Wellness Trackers</div>
+    <div class="nav-item" data-s="pain" onclick="go('pain')"><span class="ic">💊</span>Pain & Supplements</div>
+    <div class="nav-item" data-s="confidence" onclick="go('confidence')"><span class="ic">💗</span>Confidence</div>
+    <div class="nav-item" data-s="life" onclick="go('life')"><span class="ic">📖</span>Life Stages</div>
+    <div class="nav-item" data-s="kit" onclick="go('kit')"><span class="ic">🎒</span>Emergency Kit</div>
+    <div class="nav-item" data-s="wishlist" onclick="go('wishlist')"><span class="ic">🛍️</span>Wishlist</div>
+    <div class="nav-item" data-s="calendar" onclick="go('calendar')"><span class="ic">📅</span>Calendar</div>
+    <div class="theme-row">
+      <div class="theme-dot active" style="background:#F6B9C7" onclick="setTheme('pink',this)"></div>
+      <div class="theme-dot" style="background:#C9B7E4" onclick="setTheme('lavender',this)"></div>
+      <div class="theme-dot" style="background:#F5C6A0" onclick="setTheme('peach',this)"></div>
+      <div class="theme-dot" style="background:#A9C7A3" onclick="setTheme('sage',this)"></div>
+      <div class="theme-dot" style="background:#DCC8AE" onclick="setTheme('cream',this)"></div>
+    </div>
+  </div>
+
+  <div class="main">
+    <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+
+    <!-- DASHBOARD -->
+    <div class="section active" id="s-dashboard">
+      <div class="topbar"><div><h1 id="greet">Hi 🌸</h1><p id="todaytext"></p></div></div>
+      <div class="stat-row" style="margin-bottom:18px;">
+        <div class="stat"><div class="num" id="streakNum">0</div><div class="lab">Day streak</div></div>
+        <div class="stat"><div class="num" id="doneToday">0/0</div><div class="lab">Done today</div></div>
+        <div class="stat"><div class="num" id="cyclePhase">—</div><div class="lab">Cycle phase</div></div>
+      </div>
+      <div class="card">
+        <h3>🌷 Today's gentle checklist</h3>
+        <div id="dashChecklist"></div>
+      </div>
+      <div class="card">
+        <h3>💗 Today's affirmation</h3>
+        <div class="affirm-box" id="dashAffirm"></div>
+      </div>
+    </div>
+
+    <!-- HYGIENE HUB -->
+    <div class="section" id="s-hygiene">
+      <div class="topbar"><div><h1>Hygiene Hub</h1><p>Daily basics, simply tracked. No shame, just care.</p></div></div>
+      <div class="grid2">
+        <div class="card">
+          <h3>☀️ Daily checklist</h3>
+          <div id="hygieneDaily"></div>
+        </div>
+        <div class="card">
+          <h3>🗓️ Weekly checklist</h3>
+          <div id="hygieneWeekly"></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>🎒 Product inventory</h3>
+        <div id="hygieneInventory"></div>
+        <div class="row-input">
+          <input id="hygProdName" placeholder="Product name">
+          <button class="btn small" onclick="addInventory()">Add</button>
+        </div>
+      </div>
+      <div class="card">
+        <h3>📚 Good to know</h3>
+        <details><summary>Myths vs facts</summary><p>The vagina cleans itself, you only need to wash the outer area (vulva) with warm water. Douching and scented washes disrupt your natural balance more than they help. If it smells strongly different or itches, that is your body asking for a check up, not a product.</p></details>
+        <details><summary>When to see a doctor</summary><p>New strong odor, unusual discharge, burning when you pee, ongoing itching, or pain during sex are all reasons to book a check, not to self diagnose. Your body is not broken, it is just telling you something.</p></details>
+        <details><summary>Safe product use</summary><p>Fragrance free, pH balanced products are gentler on sensitive skin. Change pads or tampons every 4 to 6 hours. Cotton underwear breathes better than synthetic fabric, especially overnight.</p></details>
+      </div>
+    </div>
+
+    <!-- CYCLE -->
+    <div class="section" id="s-cycle">
+      <div class="topbar"><div><h1>Cycle Care</h1><p>Your hygiene and energy shift across the month, this section keeps up with you.</p></div></div>
+      <div class="card">
+        <h3>🌙 Cycle tracker</h3>
+        <div class="row-input">
+          <label style="font-size:13px;color:var(--ink-soft);width:100%;">Last period start date</label>
+          <input type="date" id="cycleStart">
+          <input type="number" id="cycleLen" placeholder="Cycle length (days)" value="28">
+          <button class="btn small" onclick="saveCycle()">Save</button>
+        </div>
+        <p style="font-size:13.5px;color:var(--ink-soft);margin-top:10px;" id="cycleSummary"></p>
+      </div>
+      <div class="grid2">
+        <div class="card"><h3>📖 The four phases</h3>
+          <details open><summary>Menstrual (days 1–5)</summary><p>Energy is lower, cramps are common. Gentle intimate care, warmth, and extra iron rich food help.</p></details>
+          <details><summary>Follicular (days 6–13)</summary><p>Energy rises, skin often clears up. Good window for new routines and workouts.</p></details>
+          <details><summary>Ovulation (days 14–16)</summary><p>Discharge increases, this is normal. Skin may glow, confidence often peaks here.</p></details>
+          <details><summary>Luteal (days 17–28)</summary><p>Oil production rises, breakouts and mood dips are common. Extra rest and gentle skincare help.</p></details>
+        </div>
+        <div class="card">
+          <h3>📝 Symptom log</h3>
+          <div class="row-input">
+            <select id="symType"><option>Cramps</option><option>Bloating</option><option>Headache</option><option>Mood swings</option><option>Fatigue</option><option>Breakouts</option></select>
+            <select id="symSeverity"><option>Mild</option><option>Moderate</option><option>Strong</option></select>
+            <button class="btn small" onclick="addSymptom()">Log</button>
+          </div>
+          <div id="symptomList" style="margin-top:10px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SKIN -->
+    <div class="section" id="s-skin">
+      <div class="topbar"><div><h1>Skincare Studio</h1><p>Routine built around your skin type, not a stranger's.</p></div></div>
+      <div class="grid2">
+        <div class="card"><h3>☀️ Morning routine</h3><div id="amRoutine"></div>
+          <div class="row-input"><input id="amStep" placeholder="Add a step"><button class="btn small" onclick="addRoutine('am')">Add</button></div></div>
+        <div class="card"><h3>🌙 Night routine</h3><div id="pmRoutine"></div>
+          <div class="row-input"><input id="pmStep" placeholder="Add a step"><button class="btn small" onclick="addRoutine('pm')">Add</button></div></div>
+      </div>
+      <div class="card">
+        <h3>💡 Tips for you</h3>
+        <div id="skinTip"></div>
+      </div>
+      <div class="card">
+        <h3>📓 Skin journal</h3>
+        <textarea id="skinJournalInput" placeholder="How's your skin feeling today?"></textarea>
+        <button class="btn small" style="margin-top:8px;" onclick="addJournal('skin')">Save entry</button>
+        <div id="skinJournalList" style="margin-top:10px;"></div>
+      </div>
+    </div>
+
+    <!-- HAIR -->
+    <div class="section" id="s-hair">
+      <div class="topbar"><div><h1>Hair Care</h1><p>Matched to your texture, not a generic schedule.</p></div></div>
+      <div class="card">
+        <h3>🌀 Your wash schedule</h3>
+        <div id="hairSchedule"></div>
+        <button class="btn small" style="margin-top:10px;" onclick="logWash()">Log a wash day</button>
+        <p style="font-size:13px;color:var(--ink-soft);margin-top:8px;" id="lastWashText"></p>
+      </div>
+      <div class="card">
+        <h3>📚 Basics for your texture</h3>
+        <div id="hairBasics"></div>
+      </div>
+      <div class="card">
+        <h3>🧴 Product tracker</h3>
+        <div id="hairProducts"></div>
+        <div class="row-input"><input id="hairProdName" placeholder="Product name"><button class="btn small" onclick="addHairProduct()">Add</button></div>
+      </div>
+    </div>
+
+    <!-- BODY -->
+    <div class="section" id="s-body">
+      <div class="topbar"><div><h1>Body Care</h1><p>Full body basics, from shower to fragrance.</p></div></div>
+      <div class="grid2">
+        <div class="card"><h3>🚿 Shower checklist</h3><div id="bodyChecklist"></div></div>
+        <div class="card"><h3>✨ Exfoliation planner</h3>
+          <p style="font-size:13.5px;color:var(--ink-soft);">Recommended: 1–2 times a week for body, less if sensitive.</p>
+          <div id="exfoliateTracker"></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>📖 Lesson: skin & hygiene basics that actually matter</h3>
+        <details open><summary>Sun protection by skin tone</summary><p id="sunTip"></p></details>
+        <details><summary>Ingrown hairs & razor bumps</summary><p>Exfoliate 24 hours before hair removal, always use a fresh blade, and moisturize right after. Shaving in the direction of hair growth reduces bumps significantly.</p></details>
+        <details><summary>Sweat & odor management</summary><p>Clean and dry skin folds fully after workouts. Breathable cotton fabric worn close to skin reduces bacteria buildup that causes odor.</p></details>
+        <details><summary>Common skin concerns</summary><p>Keloid-prone skin should treat cuts and piercings extra gently. Eczema-prone skin benefits from fragrance-free, thick moisturizers applied right after showering while skin is damp.</p></details>
+      </div>
+    </div>
+
+    <!-- WELLNESS -->
+    <div class="section" id="s-wellness">
+      <div class="topbar"><div><h1>Wellness Trackers</h1><p>Water, sleep, and mood, tracked without pressure.</p></div></div>
+      <div class="grid2">
+        <div class="card"><h3>💧 Water</h3>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;" id="waterDots"></div>
+          <button class="btn small" onclick="addWater()">+1 glass</button>
+        </div>
+        <div class="card"><h3>😴 Sleep</h3>
+          <div class="row-input"><input type="number" id="sleepHours" placeholder="Hours last night"><button class="btn small" onclick="logSleep()">Log</button></div>
+          <p style="font-size:13px;color:var(--ink-soft);margin-top:8px;" id="sleepAvg"></p>
+        </div>
+      </div>
+      <div class="card">
+        <h3>🙂 Mood</h3>
+        <div class="chip-grid" style="justify-content:flex-start;">
+          <div class="chip" onclick="logMood('😊 Great')">😊 Great</div>
+          <div class="chip" onclick="logMood('🙂 Good')">🙂 Good</div>
+          <div class="chip" onclick="logMood('😐 Okay')">😐 Okay</div>
+          <div class="chip" onclick="logMood('😔 Low')">😔 Low</div>
+          <div class="chip" onclick="logMood('😣 Rough')">😣 Rough</div>
+        </div>
+        <p style="font-size:13px;color:var(--ink-soft);" id="moodToday"></p>
+      </div>
+    </div>
+
+    <!-- PAIN & SUPPLEMENTS -->
+    <div class="section" id="s-pain">
+      <div class="topbar"><div><h1>Pain & Supplements</h1><p>Because self care includes the aches too.</p></div></div>
+      <div class="grid2">
+        <div class="card">
+          <h3>🦴 Pain log</h3>
+          <div class="row-input">
+            <select id="painType"><option>Joint pain</option><option>Muscle pain</option><option>Period cramps</option><option>Back pain</option><option>Headache</option><option>Breast tenderness</option></select>
+            <select id="painSeverity"><option>Mild</option><option>Moderate</option><option>Severe</option></select>
+          </div>
+          <input class="ob-input" style="margin-top:8px;" id="painNote" placeholder="Note (optional)">
+          <button class="btn small" onclick="addPain()">Log pain</button>
+          <div id="painList" style="margin-top:10px;"></div>
+        </div>
+        <div class="card">
+          <h3>💊 Supplement tracker</h3>
+          <div class="row-input">
+            <input id="suppName" placeholder="Supplement name">
+            <input id="suppDose" placeholder="Dose / time">
+          </div>
+          <button class="btn small" style="margin-top:8px;" onclick="addSupplement()">Add</button>
+          <div id="suppList" style="margin-top:10px;"></div>
+        </div>
+      </div>
+      <div class="card">
+        <p style="font-size:12.5px;color:var(--ink-soft);">This tracker is for personal awareness only, not medical advice. For pain that is severe, sudden, or unusual, please speak with a doctor.</p>
+      </div>
+    </div>
+
+    <!-- CONFIDENCE -->
+    <div class="section" id="s-confidence">
+      <div class="topbar"><div><h1>Confidence</h1><p>Soft place to check in with yourself.</p></div></div>
+      <div class="card">
+        <h3>💗 Today's affirmation</h3>
+        <div class="affirm-box" id="confAffirm"></div>
+        <button class="btn soft small" style="margin-top:12px;" onclick="newAffirm()">New affirmation</button>
+      </div>
+      <div class="card">
+        <h3>🪞 Self-talk check-in</h3>
+        <p style="font-size:13.5px;color:var(--ink-soft);">How am I speaking to myself today?</p>
+        <div class="chip-grid" style="justify-content:flex-start;">
+          <div class="chip" onclick="checkin('Kind')">Kind</div>
+          <div class="chip" onclick="checkin('Neutral')">Neutral</div>
+          <div class="chip" onclick="checkin('Critical')">Critical</div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>📓 Confidence journal</h3>
+        <textarea id="confJournalInput" placeholder="One thing I love about myself today..."></textarea>
+        <button class="btn small" style="margin-top:8px;" onclick="addJournal('conf')">Save entry</button>
+        <div id="confJournalList" style="margin-top:10px;"></div>
+      </div>
+    </div>
+
+    <!-- LIFE STAGES -->
+    <div class="section" id="s-life">
+      <div class="topbar"><div><h1>Life Stages</h1><p>Your needs change, this section grows with you.</p></div></div>
+      <div class="card">
+        <details open><summary>Teens & first period</summary><p>Focus on the basics: front to back wiping, changing pads every 4–6 hours, breathable cotton underwear. Periods can be irregular for the first couple years, that is normal.</p></details>
+        <details><summary>20s & 30s</summary><p>Sexual activity, hormonal birth control, and stress can all shift discharge, cycle length, and skin. Regular check ups matter even when nothing feels wrong.</p></details>
+        <details><summary>Pregnancy</summary><p>Increased discharge is common and normal. Avoid douching and scented products more than ever, skin sensitivity often increases too.</p></details>
+        <details><summary>Perimenopause & menopause</summary><p>Dryness, thinner skin, and irregular cycles are common as estrogen drops. Gentle, fragrance-free intimate moisturizers can help a lot here.</p></details>
+      </div>
+    </div>
+
+    <!-- EMERGENCY KIT -->
+    <div class="section" id="s-kit">
+      <div class="topbar"><div><h1>Emergency Kit</h1><p>What to always have on hand, and what to pack for travel.</p></div></div>
+      <div class="grid2">
+        <div class="card"><h3>🎒 Everyday emergency kit</h3><div id="kitDaily"></div></div>
+        <div class="card"><h3>✈️ Travel checklist</h3><div id="kitTravel"></div></div>
+      </div>
+    </div>
+
+    <!-- WISHLIST -->
+    <div class="section" id="s-wishlist">
+      <div class="topbar"><div><h1>Wishlist</h1><p>Products you're eyeing, favorites, and reviews.</p></div></div>
+      <div class="card">
+        <div class="row-input">
+          <input id="wishName" placeholder="Product name">
+          <input id="wishCat" placeholder="Category">
+        </div>
+        <button class="btn small" style="margin-top:8px;" onclick="addWish()">Add to wishlist</button>
+        <div id="wishList" style="margin-top:12px;"></div>
+      </div>
+    </div>
+
+    <!-- CALENDAR -->
+    <div class="section" id="s-calendar">
+      <div class="topbar"><div><h1>Self Care Calendar</h1><p>Days you showed up for yourself.</p></div></div>
+      <div class="card">
+        <div id="calMonthLabel" style="font-family:'Fraunces';font-size:17px;margin-bottom:6px;"></div>
+        <div class="cal-grid" id="calGrid"></div>
+      </div>
+    </div>
+
+    <div class="footer-note">Petal by CatFav · Favour Catrin A. All Rights Reserved.</div>
+  </div>
+</div>
+
+<script>
+/* ===================== helpers ===================== */
+const $ = id => document.getElementById(id);
+const todayKey = () => new Date().toISOString().slice(0,10);
+function load(key, fallback){ try{const v=JSON.parse(localStorage.getItem(key)); return v===null?fallback:v;}catch(e){return fallback;} }
+function save(key, val){ localStorage.setItem(key, JSON.stringify(val)); }
+
+/* ===================== onboarding ===================== */
+let obProfile = {name:'', tone:'', skintype:'', hair:''};
+function pick(field, el){
+  document.querySelectorAll('#'+({tone:'tone-picker',skintype:'skintype-picker',hair:'hair-picker'})[field]+' .chip')
+    .forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  obProfile[field] = el.dataset.v;
+}
+function obNext(step){
+  if(step===2) obProfile.name = $('ob-name').value.trim() || 'friend';
+  document.querySelectorAll('.ob-step').forEach(s=>s.classList.remove('active'));
+  $('ob-step-'+step).classList.add('active');
+  document.querySelectorAll('.ob-dots span').forEach(d=>d.classList.remove('on'));
+  $('dot'+step).classList.add('on');
+}
+function finishOnboard(){
+  save('petal_profile', obProfile);
+  $('onboard').style.display='none';
+  $('app').classList.add('show');
+  initApp();
+}
+(function checkProfile(){
+  const p = load('petal_profile', null);
+  if(p){ obProfile = p; $('onboard').style.display='none'; $('app').classList.add('show'); initApp(); }
+})();
+
+/* ===================== nav ===================== */
+function go(section){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  $('s-'+section).classList.add('active');
+  document.querySelector('.nav-item[data-s="'+section+'"]').classList.add('active');
+  document.getElementById('sidebar').classList.remove('open');
+}
+function setTheme(name, el){
+  const map={pink:['#F6B9C7','#E88CA3','#D46A85'],lavender:['#C9B7E4','#A98FD1','#8A6BB8'],
+    peach:['#F5C6A0','#EDA76E','#DE8A47'],sage:['#A9C7A3','#7FA878','#5F8A58'],
+    cream:['#DCC8AE','#C7AE8C','#AD9270']};
+  const v=map[name];
+  document.documentElement.style.setProperty('--accent',v[0]);
+  document.documentElement.style.setProperty('--accent-dark',v[1]);
+  document.documentElement.style.setProperty('--accent-deep',v[2]);
+  document.querySelectorAll('.theme-dot').forEach(d=>d.classList.remove('active'));
+  el.classList.add('active');
+  save('petal_theme', name);
+}
+
+/* ===================== checklist factory ===================== */
+function renderChecklist(containerId, items, storeKey){
+  const store = load(storeKey, {});
+  const dateStore = store[todayKey()] || [];
+  const el = $(containerId); el.innerHTML='';
+  items.forEach((item,i)=>{
+    const checked = dateStore.includes(i);
+    const row = document.createElement('div');
+    row.className = 'check-row'+(checked?' done':'');
+    row.innerHTML = `<input type="checkbox" ${checked?'checked':''} onchange="toggleCheck('${storeKey}','${containerId}',${i})"><label>${item}</label>`;
+    el.appendChild(row);
+  });
+}
+function toggleCheck(storeKey, containerId, i){
+  const store = load(storeKey, {});
+  const dk = todayKey();
+  store[dk] = store[dk] || [];
+  const idx = store[dk].indexOf(i);
+  if(idx>-1) store[dk].splice(idx,1); else store[dk].push(i);
+  save(storeKey, store);
+  refreshDataForContainer(containerId);
+  updateStreakAndStats();
+}
+function refreshDataForContainer(id){
+  if(id==='hygieneDaily') renderChecklist('hygieneDaily', hygieneDailyItems, 'petal_hyg_daily');
+  if(id==='hygieneWeekly') renderChecklist('hygieneWeekly', hygieneWeeklyItems, 'petal_hyg_weekly');
+  if(id==='bodyChecklist') renderChecklist('bodyChecklist', bodyItems, 'petal_body_check');
+  if(id==='exfoliateTracker') renderChecklist('exfoliateTracker', ['Exfoliated body today'], 'petal_exfoliate');
+  if(id==='dashChecklist') renderDashChecklist();
+  if(id==='kitDaily') renderChecklist('kitDaily', kitDailyItems, 'petal_kit_daily');
+  if(id==='kitTravel') renderChecklist('kitTravel', kitTravelItems, 'petal_kit_travel');
+}
+
+const hygieneDailyItems = ['Wash intimate area with water only','Change underwear','Wipe front to back','Fresh underwear before bed'];
+const hygieneWeeklyItems = ['Wash all reusable products','Restock pads/tampons/cup','Check product expiry dates','Deep clean toiletry bag'];
+const bodyItems = ['Shower / bathe','Moisturize whole body','Deodorant applied','Nails checked'];
+const kitDailyItems = ['Spare pad or tampon','Panty liner','Wet wipes','Hand sanitizer','Spare underwear'];
+const kitTravelItems = ['Full cycle supply','Travel-size intimate wash','Pain relief','Skincare essentials','Spare underwear x3'];
+
+/* ===================== dashboard ===================== */
+const affirmations = [
+  "I am beautiful, I am perfect, exactly as I am today.",
+  "My body deserves care, not criticism.",
+  "I love myself softly and completely.",
+  "I am worthy of rest, gentleness, and joy.",
+  "Every part of me is allowed to be taken care of.",
+  "I choose kindness towards myself today.",
+  "I am growing, glowing, and doing enough.",
+  "My body is my home, I treat it with love."
+];
+function renderDashChecklist(){
+  const all = [...hygieneDailyItems.map(t=>({t,k:'petal_hyg_daily'})), ...bodyItems.map(t=>({t,k:'petal_body_check'}))];
+  const el = $('dashChecklist'); el.innerHTML='';
+  let done=0;
+  all.forEach((item,i)=>{
+    const store = load(item.k, {});
+    const dk = todayKey();
+    const arr = store[dk]||[];
+    const idxInGroup = item.k==='petal_hyg_daily'? hygieneDailyItems.indexOf(item.t) : bodyItems.indexOf(item.t);
+    const checked = arr.includes(idxInGroup);
+    if(checked) done++;
+    const row = document.createElement('div');
+    row.className='check-row'+(checked?' done':'');
+    row.innerHTML = `<input type="checkbox" ${checked?'checked':''} onchange="toggleCheck('${item.k}','dashChecklist',${idxInGroup})"><label>${item.t}</label>`;
+    el.appendChild(row);
+  });
+  $('doneToday').textContent = done+'/'+all.length;
+}
+function updateStreakAndStats(){
+  // streak: count consecutive days with at least 1 checked item across any store
+  const stores = ['petal_hyg_daily','petal_body_check'];
+  let streak=0;
+  for(let i=0;i<60;i++){
+    const d = new Date(); d.setDate(d.getDate()-i);
+    const key = d.toISOString().slice(0,10);
+    let any=false;
+    stores.forEach(s=>{ const st=load(s,{}); if(st[key] && st[key].length>0) any=true; });
+    if(any) streak++; else break;
+  }
+  $('streakNum').textContent = streak;
+}
+function refreshAffirm(){
+  const idx = Math.floor(Math.random()*affirmations.length);
+  $('dashAffirm').textContent = affirmations[idx];
+  $('confAffirm').textContent = affirmations[idx];
+}
+function newAffirm(){ refreshAffirm(); }
+
+/* ===================== cycle ===================== */
+function saveCycle(){
+  const data = load('petal_cycle', {});
+  data.start = $('cycleStart').value;
+  data.len = parseInt($('cycleLen').value)||28;
+  save('petal_cycle', data);
+  renderCycle();
+}
+function renderCycle(){
+  const data = load('petal_cycle', {});
+  if(data.start){
+    $('cycleStart').value = data.start;
+    $('cycleLen').value = data.len||28;
+    const start = new Date(data.start);
+    const today = new Date();
+    const diffDays = Math.floor((today-start)/(1000*60*60*24)) % (data.len||28);
+    let phase='Menstrual';
+    if(diffDays<0){ phase='—'; }
+    else if(diffDays<5) phase='Menstrual';
+    else if(diffDays<13) phase='Follicular';
+    else if(diffDays<16) phase='Ovulation';
+    else phase='Luteal';
+    $('cycleSummary').textContent = 'You are on day '+(diffDays+1)+' of your cycle, currently in the '+phase+' phase.';
+    $('cyclePhase').textContent = phase;
+  } else {
+    $('cycleSummary').textContent = 'Add your last period start date to see your phase.';
+  }
+}
+function addSymptom(){
+  const list = load('petal_symptoms', []);
+  list.unshift({date:todayKey(), type:$('symType').value, sev:$('symSeverity').value});
+  save('petal_symptoms', list.slice(0,50));
+  renderSymptoms();
+}
+function renderSymptoms(){
+  const list = load('petal_symptoms', []);
+  $('symptomList').innerHTML = list.slice(0,8).map(s=>`<div class="list-item"><span>${s.type} — ${s.sev} <span class="pill">${s.date}</span></span></div>`).join('') || '<p style="color:var(--ink-soft);font-size:13px;">No symptoms logged yet.</p>';
+}
+
+/* ===================== skincare ===================== */
+function addRoutine(type){
+  const inputId = type==='am'?'amStep':'pmStep';
+  const val = $(inputId).value.trim();
+  if(!val) return;
+  const key = type==='am'?'petal_am_routine':'petal_pm_routine';
+  const list = load(key, []);
+  list.push(val); save(key, list);
+  $(inputId).value='';
+  renderRoutines();
+}
+function renderRoutines(){
+  const am = load('petal_am_routine', []);
+  const pm = load('petal_pm_routine', []);
+  $('amRoutine').innerHTML = am.map((s,i)=>`<div class="list-item"><span>${i+1}. ${s}</span><span class="x" onclick="removeItem('petal_am_routine',${i},renderRoutines)">✕</span></div>`).join('') || '<p style="color:var(--ink-soft);font-size:13px;">Build your morning steps.</p>';
+  $('pmRoutine').innerHTML = pm.map((s,i)=>`<div class="list-item"><span>${i+1}. ${s}</span><span class="x" onclick="removeItem('petal_pm_routine',${i},renderRoutines)">✕</span></div>`).join('') || '<p style="color:var(--ink-soft);font-size:13px;">Build your night steps.</p>';
+}
+function removeItem(key, i, cb){
+  const list = load(key, []);
+  list.splice(i,1); save(key, list);
+  cb();
+}
+const skinTips = {
+  dry:'Look for hyaluronic acid and ceramides, avoid foaming cleansers that strip natural oil.',
+  oily:'Gel cleansers and lightweight, oil-free moisturizer work best. Don\'t skip moisturizer, it prevents overproduction.',
+  combo:'Balance is key, lighter product on the T-zone, richer product on drier areas.',
+  sensitive:'Fragrance-free everything. Patch test new products for 48 hours before full use.',
+  normal:'Focus on maintenance: gentle cleanser, moisturizer, and daily SPF.'
+};
+function renderSkinTip(){
+  $('skinTip').innerHTML = `<p style="font-size:13.5px;color:var(--ink-soft);">${skinTips[obProfile.skintype] || skinTips.normal}</p>`;
+}
+
+/* ===================== hair ===================== */
+const hairSchedules = {
+  straight:'Wash every 1–2 days, hair oils spread quickly on straight strands.',
+  wavy:'Wash every 2–3 days, use lightweight products so waves don\'t get weighed down.',
+  curly:'Wash every 4–5 days, focus on moisture, curls thrive on hydration not daily washing.',
+  coily:'Wash every 7–10 days, deep condition weekly, protective styles help retain moisture.'
+};
+const hairBasics = {
+  straight:'Straight hair shows oil fastest. Dry shampoo between washes helps stretch styles.',
+  wavy:'Scrunching product into damp hair enhances wave pattern without weighing it down.',
+  curly:'Detangle only when wet and with conditioner in. Avoid brushing dry curls.',
+  coily:'Moisture first, then seal with oil or butter. Low manipulation styles reduce breakage.'
+};
+function renderHair(){
+  $('hairSchedule').innerHTML = `<p style="font-size:13.5px;">${hairSchedules[obProfile.hair]||hairSchedules.wavy}</p>`;
+  $('hairBasics').innerHTML = `<p style="font-size:13.5px;color:var(--ink-soft);">${hairBasics[obProfile.hair]||hairBasics.wavy}</p>`;
+  const log = load('petal_hair_log', []);
+  $('lastWashText').textContent = log.length ? 'Last wash logged: '+log[0] : 'No wash days logged yet.';
+}
+function logWash(){
+  const log = load('petal_hair_log', []);
+  log.unshift(todayKey()); save('petal_hair_log', log.slice(0,30));
+  renderHair();
+}
+function addHairProduct(){
+  const val = $('hairProdName').value.trim(); if(!val) return;
+  const list = load('petal_hair_products', []); list.push(val); save('petal_hair_products', list);
+  $('hairProdName').value=''; renderHairProducts();
+}
+function renderHairProducts(){
+  const list = load('petal_hair_products', []);
+  $('hairProducts').innerHTML = list.map((p,i)=>`<div class="list-item"><span>${p}</span><span class="x" onclick="removeItem('petal_hair_products',${i},renderHairProducts)">✕</span></div>`).join('') || '<p style="color:var(--ink-soft);font-size:13px;">No products yet.</p>';
+}
+
+/* ===================== body / sun tip ===================== */
+const sunTips = {
+  fair:'Higher burn risk, use SPF 30+ daily and reapply every 2 hours in direct sun.',
+  light:'Use SPF 30+ daily, fair to light tones burn faster than they tan.',
+  medium:'Still needs daily SPF 30, medium tones can burn and tan.',
+  tan:'SPF 30 daily protects against hyperpigmentation and premature aging, even if burning is rare.',
+  deep:'Melanin gives natural protection but not immunity, SPF 30 helps prevent dark spots and uneven tone.',
+  rich:'Sunburn is rare but hyperpigmentation and sun damage still happen, daily SPF keeps tone even.'
+};
+function renderSunTip(){ $('sunTip').textContent = sunTips[obProfile.tone] || sunTips.medium; }
+
+/* ===================== wellness ===================== */
+function addWater(){
+  const store = load('petal_water', {});
+  const dk = todayKey();
+  store[dk] = (store[dk]||0)+1;
+  save('petal_water', store);
+  renderWater();
+}
+function renderWater(){
+  const store = load('petal_water', {});
+  const count = store[todayKey()]||0;
+  let dots='';
+  for(let i=0;i<8;i++) dots += `<div style="width:26px;height:26px;border-radius:50%;background:${i<count?'var(--accent)':'var(--cream)'};display:flex;align-items:center;justify-content:center;font-size:12px;">${i<count?'💧':''}</div>`;
+  $('waterDots').innerHTML = dots;
+}
+function logSleep(){
+  const val = parseFloat($('sleepHours').value); if(!val) return;
+  const store = load('petal_sleep', {});
+  store[todayKey()] = val; save('petal_sleep', store);
+  $('sleepHours').value='';
+  renderSleep();
+}
+function renderSleep(){
+  const store = load('petal_sleep', {});
+  const vals = Object.values(store);
+  const avg = vals.length ? (vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1) : 0;
+  $('sleepAvg').textContent = 'Average sleep: '+avg+' hrs over '+vals.length+' logged nights.';
+}
+function logMood(m){
+  const store = load('petal_mood', {});
+  store[todayKey()] = m; save('petal_mood', store);
+  renderMood();
+}
+function renderMood(){
+  const store = load('petal_mood', {});
+  $('moodToday').textContent = store[todayKey()] ? 'Today: '+store[todayKey()] : 'No mood logged today.';
+}
+
+/* ===================== pain & supplements ===================== */
+function addPain(){
+  const list = load('petal_pain', []);
+  list.unshift({date:todayKey(), type:$('painType').value, sev:$('painSeverity').value, note:$('painNote').value});
+  save('petal_pain', list.slice(0,50));
+  $('painNote').value='';
+  renderPain();
+}
+function renderPain(){
+  const list = load('petal_pain', []);
+  $('painList').innerHTML = list.slice(0,8).map(p=>`<div class="list-item"><span>${p.type} — ${p.sev}${p.note?' · '+p.note:''} <span class="pill">${p.date}</span></span></div>`).join('') || '<p style="color:var(--ink-soft);font-size:13px;">No pain logged. Feeling good 🌸</p>';
+}
+function addSupplement(){
+  const name=$('suppName').value.trim(); const dose=$('suppDose').value.trim();
+  if(!name) return;
+  const list = load('petal_supplements', []);
+  list.push({name,dose}); save('petal_supplements', list);
+  $('suppName').value=''; $('suppDose').value='';
+  renderSupplements();
+}
+function renderSupplements(){
+  const list = load('petal_supplements', []);
+  $('suppList').innerHTML = list.map((s,i)=>`<div class="list-item"><span>${s.name}${s.dose?' · '+s.dose:''}</span><span class="x" onclick="removeItem('petal_supplements',${i},renderSupplements)">✕</span></div>`).join('') || '<p style="color:var(--ink-soft);font-size:13px;">No supplements added.</p>';
+}
+
+/* ===================== confidence ===================== */
+function checkin(v){
+  const store = load('petal_selftalk', {});
+  store[todayKey()] = v; save('petal_selftalk', store);
+}
+function addJournal(type){
+  const inputId = type==='skin'?'skinJournalInput':'confJournalInput';
+  const key = type==='skin'?'petal_skin_journal':'petal_conf_journal';
+  const val = $(inputId).value.trim(); if(!val) return;
+  const list = load(key, []); list.unshift({date:todayKey(), text:val}); save(key, list);
+  $(inputId).value=''; renderJournals();
+}
+function renderJournals(){
+  const sj = load('petal_skin_journal', []);
+  const cj = load('petal_conf_journal', []);
+  $('skinJournalList').innerHTML = sj.slice(0,5).map(e=>`<div class="list-item"><span>${e.text} <span class="pill">${e.date}</span></span></div>`).join('');
+  $('confJournalList').innerHTML = cj.slice(0,5).map(e=>`<div class="list-item"><span>${e.text} <span class="pill">${e.date}</span></span></div>`).join('');
+}
+
+/* ===================== inventory / wishlist ===================== */
+function addInventory(){
+  const val = $('hygProdName').value.trim(); if(!val) return;
+  const list = load('petal_hyg_inventory', []); list.push(val); save('petal_hyg_inventory', list);
+  $('hygProdName').value=''; renderInventory();
+}
+function renderInventory(){
+  const list = load('petal_hyg_inventory', []);
+  $('hygieneInventory').innerHTML = list.map((p,i)=>`<div class="list-item"><span>${p}</span><span class="x" onclick="removeItem('petal_hyg_inventory',${i},renderInventory)">✕</span></div>`).join('') || '<p style="color:var(--ink-soft);font-size:13px;">No products added yet.</p>';
+}
+function addWish(){
+  const name=$('wishName').value.trim(); const cat=$('wishCat').value.trim();
+  if(!name) return;
+  const list = load('petal_wishlist', []); list.push({name,cat}); save('petal_wishlist', list);
+  $('wishName').value=''; $('wishCat').value=''; renderWishlist();
+}
+function renderWishlist(){
+  const list = load('petal_wishlist', []);
+  $('wishList').innerHTML = list.map((w,i)=>`<div class="list-item"><span>${w.name}${w.cat?' <span class="pill">'+w.cat+'</span>':''}</span><span class="x" onclick="removeItem('petal_wishlist',${i},renderWishlist)">✕</span></div>`).join('') || '<p style="color:var(--ink-soft);font-size:13px;">Your wishlist is empty.</p>';
+}
+
+/* ===================== calendar ===================== */
+function renderCalendar(){
+  const now = new Date();
+  const year = now.getFullYear(), month = now.getMonth();
+  $('calMonthLabel').textContent = now.toLocaleString('default',{month:'long'})+' '+year;
+  const firstDay = new Date(year,month,1).getDay();
+  const daysInMonth = new Date(year,month+1,0).getDate();
+  const hyg = load('petal_hyg_daily', {});
+  const body = load('petal_body_check', {});
+  let html='';
+  for(let i=0;i<firstDay;i++) html += '<div></div>';
+  for(let d=1; d<=daysInMonth; d++){
+    const key = year+'-'+String(month+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    const logged = (hyg[key]&&hyg[key].length>0) || (body[key]&&body[key].length>0);
+    const isToday = key===todayKey();
+    html += `<div class="cal-day ${logged?'logged':''} ${isToday?'today':''}">${d}</div>`;
+  }
+  $('calGrid').innerHTML = html;
+}
+
+/* ===================== init ===================== */
+function initApp(){
+  $('greet').textContent = 'Hi '+obProfile.name+' 🌸';
+  $('todaytext').textContent = new Date().toLocaleDateString('default',{weekday:'long',month:'long',day:'numeric'});
+  renderChecklist('hygieneDaily', hygieneDailyItems, 'petal_hyg_daily');
+  renderChecklist('hygieneWeekly', hygieneWeeklyItems, 'petal_hyg_weekly');
+  renderChecklist('bodyChecklist', bodyItems, 'petal_body_check');
+  renderChecklist('exfoliateTracker', ['Exfoliated body today'], 'petal_exfoliate');
+  renderChecklist('kitDaily', kitDailyItems, 'petal_kit_daily');
+  renderChecklist('kitTravel', kitTravelItems, 'petal_kit_travel');
+  renderDashChecklist();
+  renderCycle();
+  renderSymptoms();
+  renderRoutines();
+  renderSkinTip();
+  renderHair();
+  renderHairProducts();
+  renderSunTip();
+  renderWater();
+  renderSleep();
+  renderMood();
+  renderPain();
+  renderSupplements();
+  renderJournals();
+  renderInventory();
+  renderWishlist();
+  renderCalendar();
+  refreshAffirm();
+  updateStreakAndStats();
+  const theme = load('petal_theme','pink');
+  const dots = document.querySelectorAll('.theme-dot');
+  const themeIndex = {pink:0,lavender:1,peach:2,sage:3,cream:4}[theme];
+  if(dots[themeIndex]) setTheme(theme, dots[themeIndex]);
+}
+</script>
+</body>
+</html>
